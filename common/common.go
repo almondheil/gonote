@@ -6,9 +6,11 @@ package common
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"slices"
 	"strings"
+	"syscall"
 
 	"github.com/adrg/frontmatter"
 )
@@ -98,4 +100,26 @@ func FindNotesFiltered(notedir string, required_tags []string) ([]Note, error) {
 	}
 
 	return found_notes, nil
+}
+
+func EditNotes(notedir string, note_titles []string) error {
+	// Locate editor binary
+	// TODO: open the note with the configured editor (FOR NOW, JUST VIM)
+	// TODO: what if the editor is more than one word? then it's more than one arg and hoooo boy
+	binary, err := exec.LookPath("vim")
+	if err != nil {
+		return err
+	}
+
+	// Create the args needed to run vim
+	passed_args := make([]string, 1+len(note_titles))
+	passed_args[0] = "vim"
+	for i, name := range note_titles {
+		passed_args[i+1] = filepath.Join(notedir, name)
+	}
+
+	// Exec the new process we need, replacing the go process
+	env := os.Environ()
+	err = syscall.Exec(binary, passed_args, env)
+	return err // if we hit this, exec failed anyway
 }

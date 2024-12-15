@@ -6,9 +6,7 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"syscall"
 
 	"github.com/almondheil/gonote/common"
 	"github.com/koki-develop/go-fzf"
@@ -37,26 +35,7 @@ var editCmd = &cobra.Command{
 			panic(err)
 		}
 
-		// Locate editor binary
-		// TODO: open the note with the filename (FOR NOW, JUST VIM)
-		binary, err := exec.LookPath("vim")
-		if err != nil {
-			panic(err)
-		}
-
-		// Create the args needed to run vim
-		editor_args := make([]string, 1+len(choice_filenames))
-		editor_args[0] = "vim"
-		for i, name := range choice_filenames {
-			editor_args[i+1] = filepath.Join(notedir, name)
-		}
-
-		// Exec the new process we need
-		env := os.Environ()
-		err = syscall.Exec(binary, editor_args, env)
-		if err != nil {
-			panic(err)
-		}
+		common.EditNotes(notedir, choice_filenames)
 	},
 }
 
