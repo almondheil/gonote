@@ -43,15 +43,15 @@ var listCmd = &cobra.Command{
 func print_note_info(note common.Note, long bool) {
 	// print in long or short form
 	if !long {
-		fmt.Println(note.Filename, "-", note.Frontmatter.Tags)
+		fmt.Println(note.Filename, "-", note.Matter.Tags)
 	} else {
-		if note.Frontmatter.Title != "" {
-			fmt.Println(note.Frontmatter.Title)
+		if note.Matter.Title != "" {
+			fmt.Println(note.Matter.Title)
 		} else {
 			fmt.Println(note.Filename)
 		}
-		fmt.Println("  date:", note.Frontmatter.Date)
-		fmt.Println("  tags:", note.Frontmatter.Tags)
+		fmt.Println("  date:", note.Matter.Date)
+		fmt.Println("  tags:", note.Matter.Tags)
 	}
 }
 

@@ -48,7 +48,7 @@ func fzf_choose_notes(notes []common.Note) ([]string, error) {
 		filenames[i] = note.Filename
 
 		// Store filename with tags listed
-		tag_formatted := fmt.Sprintf("%s %v", note.Filename, note.Frontmatter.Tags)
+		tag_formatted := fmt.Sprintf("%s %v", note.Filename, note.Matter.Tags)
 		filenames_tagged[i] = tag_formatted
 	}
 

@@ -38,7 +38,7 @@ func print_note_tags(notes []common.Note) {
 	// Store a set of the tags we've seen, and go through all notes to find them
 	var found_tags = make(map[string]bool)
 	for _, note := range notes {
-		for _, t := range note.Frontmatter.Tags {
+		for _, t := range note.Matter.Tags {
 			found_tags[t] = true
 		}
 	}
