@@ -22,7 +22,7 @@ var new_noprompt bool
 
 // newCmd represents the new command
 var newCmd = &cobra.Command{
-	Use:                   "new [-l] [-t tag [-t tag ...]] [title]",
+	Use:                   "new [-l] [-t tag [-t tag ...]] title",
 	Aliases:               []string{"n"},
 	Short:                 "Create a new note.",
 	DisableFlagsInUseLine: true,
