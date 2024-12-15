@@ -6,6 +6,7 @@ package common
 
 import (
 	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 
@@ -16,6 +17,11 @@ type NoteFrontmatter struct {
 	Title string   `yaml:"title"`
 	Date  string   `yaml:"date"`
 	Tags  []string `yaml:"tags"`
+}
+
+type Note struct {
+	Filename    string
+	Frontmatter NoteFrontmatter
 }
 
 func ListNotes(path string) ([]string, error) {
@@ -65,4 +71,31 @@ func TagsMatch(required []string, check []string) bool {
 	}
 
 	return true
+}
+
+func FindNotesFiltered(notedir string, required_tags []string) ([]Note, error) {
+	found_notes := make([]Note, 0)
+
+	notes, err := ListNotes(notedir)
+	if err != nil {
+		return nil, err
+	}
+
+	// collect the notes into a slice
+	for _, note_filename := range notes {
+		note_path := filepath.Join(notedir, note_filename)
+		matter, err := ReadHeader(note_path)
+		if err != nil {
+			return nil, err
+		}
+
+		// Skip this iteration if we don't have the required tags
+		if !TagsMatch(required_tags, matter.Tags) {
+			continue
+		}
+
+		found_notes = append(found_notes, Note{Filename: note_filename, Frontmatter: matter})
+	}
+
+	return found_notes, nil
 }
