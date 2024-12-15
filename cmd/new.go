@@ -43,14 +43,14 @@ var newCmd = &cobra.Command{
 }
 
 func create_templated_note(notedir string, title string) error {
-
 	// Get the current date and put it into the right formats
-	date_long := time.Now().Format("2006-01-02")
-	date_short := strings.Replace(date_long, "-", "", -1)
+	now := time.Now()
+	date_long := now.Format("2006-01-02")
+	date_compact := now.Format("20060102")
 
 	// Check whether a note with this title exists already
 	// TODO: use config for user
-	note_title := date_short + "-" + title + ".md" // TODO: support more than md files
+	note_title := date_compact + "-" + title + ".md" // TODO: support more than md files
 	note_path := filepath.Join(notedir, note_title)
 	_, err := os.Stat(note_path)
 	if !errors.Is(err, os.ErrNotExist) {
