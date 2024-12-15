@@ -19,34 +19,31 @@ var tagsCmd = &cobra.Command{
 	Short:   "List tags across existing notes.",
 	Aliases: []string{"t"},
 	Run: func(cmd *cobra.Command, args []string) {
-		list_note_tags()
-	},
-}
-
-func list_note_tags() {
-	homedir := os.Getenv("HOME")
-	notedir := filepath.Join(homedir, "Notes")
-	notes, err := common.ListNotes(notedir)
-	if err != nil {
-		// TODO: remove panics
-		panic(err)
-	}
-
-	// store a set of the tags we've seen, and go through all notes to find them
-	var found_tags = make(map[string]bool)
-	for _, note := range notes {
-		note_path := filepath.Join(notedir, note)
-		matter, err := common.ReadHeader(note_path)
+		// Get all notes in that directory (regardless of tag)
+		homedir := os.Getenv("HOME")
+		notedir := filepath.Join(homedir, "Notes")
+		notes, err := common.FindNotesFiltered(notedir, []string{})
 		if err != nil {
+			// TODO: remove panics
 			panic(err)
 		}
 
-		for _, t := range matter.Tags {
+		// Print out the unique tags across all notes
+		print_note_tags(notes)
+
+	},
+}
+
+func print_note_tags(notes []common.Note) {
+	// Store a set of the tags we've seen, and go through all notes to find them
+	var found_tags = make(map[string]bool)
+	for _, note := range notes {
+		for _, t := range note.Frontmatter.Tags {
 			found_tags[t] = true
 		}
 	}
 
-	// Print out the tags we found in alphabetical order
+	// Get a slice with every tag we've seen
 	// from https://stackoverflow.com/a/27848197
 	keys := make([]string, len(found_tags))
 	i := 0
