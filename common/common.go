@@ -6,6 +6,7 @@ package common
 
 import (
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/adrg/frontmatter"
@@ -53,4 +54,15 @@ func ReadHeader(path string) (NoteFrontmatter, error) {
 	}
 
 	return matter, nil
+}
+
+func TagsMatch(required []string, check []string) bool {
+	// just loop over the required tags and be slow, because why not
+	for _, tag := range required {
+		if !slices.Contains(check, tag) {
+			return false
+		}
+	}
+
+	return true
 }

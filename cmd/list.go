@@ -22,14 +22,14 @@ var listCmd = &cobra.Command{
 	Aliases:               []string{"l", "ls"},
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		list_note_tags(list_tags, list_long)
+		list_notes(list_tags, list_long)
 	},
 }
 
 // TODO: I need a function that is basically an iterator over all the notes, that'd be cool
 // TODO: I could also use a function that reads the frontmatter of a specific note file, as a common one
 
-func list_note_tags(tags []string, long bool) {
+func list_notes(required_tags []string, long bool) {
 	// TODO: GOD DAMN IT, WE NEED CONFIG
 
 	homedir := os.Getenv("HOME")
@@ -48,8 +48,13 @@ func list_note_tags(tags []string, long bool) {
 			panic(err)
 		}
 
+		// Skip this iteration if we don't have the required tags
+		if !common.TagsMatch(required_tags, matter.Tags) {
+			continue
+		}
+
 		// print in long or short form
-		if !list_long {
+		if !long {
 			fmt.Println(note, "-", matter.Tags)
 		} else {
 			if matter.Title != "" {
