@@ -3,8 +3,8 @@ module github.com/almondheil/gonote
 go 1.23.4
 
 require (
-	github.com/spf13/cobra v1.8.1
 	github.com/adrg/frontmatter v0.2.0
+	github.com/spf13/cobra v1.8.1
 )
 
 require (
