@@ -58,12 +58,14 @@ func create_templated_note(notedir string, title string) error {
 		os.Exit(1)
 	}
 
-	// Prompt for whether the user wants to create the note
-	create, err := confirm_create(note_title)
-	if err != nil {
-		panic(err)
-	} else if !create {
-		return nil
+	// If enabled for whether the user wants to create the note
+	if !new_noprompt {
+		create, err := confirm_create(note_title)
+		if err != nil {
+			panic(err)
+		} else if !create {
+			return nil
+		}
 	}
 
 	// Create the for the note
