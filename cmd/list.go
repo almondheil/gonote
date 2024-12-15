@@ -14,7 +14,7 @@ import (
 var listCmd = &cobra.Command{
 	Use:   "list [-l] [-t tag [-t tag ...]]",
 	Short: "List notes and filter by tags.",
-	Aliases: []string{"l"},
+	Aliases: []string{"l", "ls"},
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("list called")
