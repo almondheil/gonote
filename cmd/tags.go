@@ -12,8 +12,8 @@ import (
 
 // tagsCmd represents the tags command
 var tagsCmd = &cobra.Command{
-	Use:   "tags"
-	Short: "List tags across existing notes."
+	Use:   "tags",
+	Short: "List tags across existing notes.",
 	Aliases: []string{"t"},
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("tags called")
