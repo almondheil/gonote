@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/almondheil/gonote/common"
 	"github.com/spf13/cobra"
 )
 
@@ -18,23 +17,27 @@ var tagsCmd = &cobra.Command{
 	Use:     "tags",
 	Short:   "List tags across existing notes.",
 	Aliases: []string{"t"},
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
+		err := find_user_config()
+		if err != nil {
+			return err
+		}
+
 		// Get all notes in that directory (regardless of tag)
 		homedir := os.Getenv("HOME")
 		notedir := filepath.Join(homedir, "Notes")
-		notes, err := common.FindNotesFiltered(notedir, []string{})
+		notes, err := FindNotesFiltered(notedir, []string{})
 		if err != nil {
-			// TODO: remove panics
-			panic(err)
+			return err
 		}
 
 		// Print out the unique tags across all notes
 		print_note_tags(notes)
-
+		return nil
 	},
 }
 
-func print_note_tags(notes []common.Note) {
+func print_note_tags(notes []Note) {
 	// Store a set of the tags we've seen, and go through all notes to find them
 	var found_tags = make(map[string]bool)
 	for _, note := range notes {

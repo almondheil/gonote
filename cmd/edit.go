@@ -5,10 +5,7 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 
-	"github.com/almondheil/gonote/common"
 	"github.com/koki-develop/go-fzf"
 	"github.com/spf13/cobra"
 )
@@ -21,25 +18,29 @@ var editCmd = &cobra.Command{
 	Short:                 "Search for and open a note.",
 	Aliases:               []string{"e"},
 	DisableFlagsInUseLine: true,
-	Run: func(cmd *cobra.Command, args []string) {
-		// TODO: use config to get user note directory
-		homedir := os.Getenv("HOME")
-		notedir := filepath.Join(homedir, "Notes")
-		notes, err := common.FindNotesFiltered(notedir, edit_tags)
+	RunE: func(cmd *cobra.Command, args []string) error {
+		err := find_user_config()
 		if err != nil {
-			panic(err)
+			return err
+		}
+
+		notedir := user_cfg.Notedir
+		notes, err := FindNotesFiltered(notedir, edit_tags)
+		if err != nil {
+			return err
 		}
 
 		choice_filenames, err := fzf_choose_notes(notes)
 		if err != nil {
-			panic(err)
+			return err
 		}
 
-		common.EditNotes(notedir, choice_filenames)
+		EditNotes(notedir, choice_filenames)
+		return nil
 	},
 }
 
-func fzf_choose_notes(notes []common.Note) ([]string, error) {
+func fzf_choose_notes(notes []Note) ([]string, error) {
 	// Put together the filenames of all our notes
 	filenames := make([]string, len(notes))
 	filenames_tagged := make([]string, len(notes))

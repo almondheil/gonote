@@ -5,10 +5,7 @@ package cmd
 
 import (
 	"fmt"
-	"os/user"
-	"path/filepath"
 
-	"github.com/almondheil/gonote/common"
 	"github.com/spf13/cobra"
 )
 
@@ -19,28 +16,29 @@ var list_long bool
 var listCmd = &cobra.Command{
 	Use:                   "list [-l] [-t tag [-t tag ...]]",
 	Short:                 "List notes and filter by tags.",
-	Aliases:               []string{"l", "ls"},
+	Aliases:               []string{"ls", "l"},
 	DisableFlagsInUseLine: true,
-	Run: func(cmd *cobra.Command, args []string) {
-		// TODO: use config to get user home dir
-		usr, err := user.Current()
+	RunE: func(cmd *cobra.Command, args []string) error {
+		err := find_user_config()
 		if err != nil {
-			panic(err)
+			return err
 		}
-		notedir := filepath.Join(usr.HomeDir, "Notes")
-		notes, err := common.FindNotesFiltered(notedir, list_tags)
+
+		notedir := user_cfg.Notedir
+		notes, err := FindNotesFiltered(notedir, list_tags)
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		// Print out each note that has the correct tags
 		for _, n := range notes {
 			print_note_info(n, list_long)
 		}
+		return nil
 	},
 }
 
-func print_note_info(note common.Note, long bool) {
+func print_note_info(note Note, long bool) {
 	// print in long or short form
 	if !long {
 		fmt.Println(note.Filename, "-", note.Matter.Tags)

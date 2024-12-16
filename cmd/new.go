@@ -5,15 +5,12 @@ package cmd
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"os"
-	"os/user"
 	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/almondheil/gonote/common"
 	"github.com/spf13/cobra"
 )
 
@@ -27,18 +24,17 @@ var newCmd = &cobra.Command{
 	Short:                 "Create a new note.",
 	DisableFlagsInUseLine: true,
 	Args:                  cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		// TODO: use config to get user home dir
-		usr, err := user.Current()
+	RunE: func(cmd *cobra.Command, args []string) error {
+		err := find_user_config()
 		if err != nil {
-			panic(err)
+			return err
 		}
-		notedir := filepath.Join(usr.HomeDir, "Notes")
 
-		err = create_templated_note(notedir, args[0])
+		err = create_templated_note(user_cfg.Notedir, args[0])
 		if err != nil {
-			panic(err)
+			return err
 		}
+		return nil
 	},
 }
 
@@ -49,11 +45,9 @@ func create_templated_note(notedir string, title string) error {
 	date_compact := now.Format("20060102")
 
 	// Check whether a note with this title exists already
-	// TODO: use config for user
-	note_title := date_compact + "-" + title + ".md" // TODO: support more than md files
+	note_title := date_compact + "-" + title + user_cfg.Extension
 	note_path := filepath.Join(notedir, note_title)
-	_, err := os.Stat(note_path)
-	if !errors.Is(err, os.ErrNotExist) {
+	if Exists(note_path) {
 		fmt.Println("Note", note_title, "already exists, did you mean `gonote edit`?")
 		os.Exit(1)
 	}
@@ -62,7 +56,7 @@ func create_templated_note(notedir string, title string) error {
 	if !new_noprompt {
 		create, err := confirm_create(note_title)
 		if err != nil {
-			panic(err)
+			return err
 		} else if !create {
 			return nil
 		}
@@ -83,7 +77,7 @@ func create_templated_note(notedir string, title string) error {
 	}
 
 	// Open that file in the user's editor
-	err = common.EditNotes(notedir, []string{note_title})
+	err = EditNotes(notedir, []string{note_title})
 	if err != nil {
 		return err
 	}
