@@ -31,22 +31,20 @@ type Note struct {
 }
 
 func list_notes(path string) ([]string, error) {
-	var files []string
-
-	// Open directory
-	dir_entries, err := os.ReadDir(path)
+		// Open directory
+	dir, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
+defer dir.Close()
 
-	// Append all the entries to the array
-	for _, entry := range dir_entries {
-		if !entry.IsDir() {
-			files = append(files, entry.Name())
-		}
+	// Use Readdirnames to JUST get the names of all the files.
+	// This is really fast, but doesn't let us check if they're ok or not.
+	note_names, err := dir.Readdirnames(0)
+		if err != nil {
+			return nil, err
 	}
-
-	return files, nil
+	return note_names, nil
 }
 
 func tags_match(required []string, check []string) bool {
