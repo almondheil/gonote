@@ -6,6 +6,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"os/user"
@@ -191,7 +192,8 @@ func ReadMatter(path string) (note_frontmatter, error) {
 	contents := string(dat)
 	_, err = frontmatter.Parse(strings.NewReader(contents), &matter)
 	if err != nil {
-		return matter, err
+		error_str := fmt.Sprintf("reading frontmatter of %s: %s", path, err.Error())
+		return matter, errors.New(error_str)
 	}
 
 	return matter, nil
