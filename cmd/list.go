@@ -41,7 +41,7 @@ var listCmd = &cobra.Command{
 func print_note_info(note Note, long bool) {
 	// print in long or short form
 	if !long {
-		fmt.Println(note.Filename, "-", note.Matter.Tags)
+		fmt.Printf("%s %v\n", note.Filename, note.Matter.Tags)
 	} else {
 		if note.Matter.Title != "" {
 			fmt.Println(note.Matter.Title)
