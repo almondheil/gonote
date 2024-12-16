@@ -7,10 +7,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
+
+var tags_show_count bool
 
 // tagsCmd represents the tags command
 var tagsCmd = &cobra.Command{
@@ -39,29 +42,52 @@ var tagsCmd = &cobra.Command{
 
 func print_note_tags(notes []Note) {
 	// Store a set of the tags we've seen, and go through all notes to find them
-	var found_tags = make(map[string]bool)
+	var found_tags = make(map[string]int)
 	for _, note := range notes {
 		for _, t := range note.Matter.Tags {
-			found_tags[t] = true
+			found_tags[t] += 1
 		}
 	}
 
-	// Get a slice with every tag we've seen
-	// from https://stackoverflow.com/a/27848197
-	keys := make([]string, len(found_tags))
+	// Pull key-value pairs into a struct together
+	type KVPair struct {
+		s string
+		i int
+	}
+	pairs := make([]KVPair, len(found_tags))
 	i := 0
 	for k := range found_tags {
-		keys[i] = k
+		pairs[i].s = k
+		pairs[i].i = found_tags[k]
 		i++
 	}
 
-	// Sort alphabetically before printing
-	sort.Strings(keys)
-	for _, k := range keys {
-		fmt.Println(k)
+	// Sort and print depending on whether we are showing the count or not
+	if tags_show_count {
+		// sort by count ascending
+		slices.SortFunc(pairs, func(a, b KVPair) int {
+			return a.i - b.i
+		})
+
+		// print out both numbers and titles
+		for _, pair := range pairs {
+			fmt.Printf("%d %s\n", pair.i, pair.s)
+		}
+	} else {
+		// sort by alphabetic ascending
+		slices.SortFunc(pairs, func(a, b KVPair) int {
+			return strings.Compare(a.s, b.s)
+		})
+
+		// print out just the titles (strings)
+		for _, pair := range pairs {
+			fmt.Println(pair.s)
+		}
 	}
 }
 
 func init() {
 	rootCmd.AddCommand(tagsCmd)
+
+	tagsCmd.Flags().BoolVar(&tags_show_count, "count", false, "Sort and print by usage count.")
 }
