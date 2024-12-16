@@ -105,7 +105,7 @@ func read_note_worker(notedir string, jobs <-chan string, results chan<- ReadNot
 		// Attempt to read its YAML frontmatter
 		_, err = frontmatter.Parse(file, &res.val.Matter)
 		if err != nil {
-			error_str := fmt.Sprintf("reading frontmatter of %s: %s", path, err.Error())
+			error_str := fmt.Sprintf("%s: %s", path, err.Error())
 			res.err = errors.New(error_str)
 			results <- res
 			continue
@@ -152,7 +152,7 @@ func FindNotesFiltered(notedir string, required_tags []string) ([]Note, error) {
 
 		// Print an error if the goroutine failed
 		if res.err != nil {
-			fmt.Fprintf(os.Stderr, "note not read: %v\n", err)
+			fmt.Fprintf(os.Stderr, "note not read: %v\n", res.err)
 			failed = true
 		}
 
