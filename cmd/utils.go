@@ -141,6 +141,7 @@ func FindNotesFiltered(notedir string, required_tags []string) ([]Note, error) {
 	for _, filename := range notes {
 		jobs <- filename
 	}
+	// close the channel so the goroutines know they're done
 	close(jobs)
 
 	// Collect the results from each goroutine
