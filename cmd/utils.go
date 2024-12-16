@@ -144,7 +144,7 @@ func FindNotesFiltered(notedir string, required_tags []string) ([]Note, error) {
 	close(jobs)
 
 	// Collect the results from each goroutine
-	found_notes := make([]Note, num_notes)
+	found_notes := make([]Note, 0)
 	failed := false
 	for i := 0; i < num_notes; i++ {
 		res := <-results
