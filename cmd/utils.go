@@ -12,7 +12,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"slices"
-	"strings"
+	"sort"
 	"syscall"
 
 	"github.com/adrg/frontmatter"
@@ -31,18 +31,18 @@ type Note struct {
 }
 
 func list_notes(path string) ([]string, error) {
-		// Open directory
+	// Open directory
 	dir, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
-defer dir.Close()
+	defer dir.Close()
 
 	// Use Readdirnames to JUST get the names of all the files.
 	// This is really fast, but doesn't let us check if they're ok or not.
 	note_names, err := dir.Readdirnames(0)
-		if err != nil {
-			return nil, err
+	if err != nil {
+		return nil, err
 	}
 	return note_names, nil
 }
@@ -147,52 +147,93 @@ func Exists(path string) bool {
 	return !errors.Is(err, os.ErrNotExist)
 }
 
-func FindNotesFiltered(notedir string, required_tags []string) ([]Note, error) {
-	found_notes := make([]Note, 0)
+type ReadNoteResult struct {
+	val Note
+	err error
+}
 
+func read_note_worker(notedir string, jobs <-chan string, results chan<- ReadNoteResult) {
+	for filename := range jobs {
+		// Create an empty result that we'll build up
+		var res ReadNoteResult
+		res.val.Filename = filename
+
+		// Open the file for reading
+		path := filepath.Join(notedir, filename)
+		file, err := os.Open(path)
+		if err != nil {
+			res.err = err
+			results <- res
+			continue
+		}
+
+		// Attempt to read its YAML frontmatter
+		_, err = frontmatter.Parse(file, &res.val.Matter)
+		if err != nil {
+			error_str := fmt.Sprintf("reading frontmatter of %s: %s", path, err.Error())
+			res.err = errors.New(error_str)
+			results <- res
+			continue
+		}
+
+		// Close the file before we do another iteration
+		file.Close()
+
+		// Put our non-error note into the results channel
+		res.err = nil
+		results <- res
+	}
+}
+
+func FindNotesFiltered(notedir string, required_tags []string) ([]Note, error) {
+	// Get a list of all the notes
 	notes, err := list_notes(notedir)
 	if err != nil {
 		return nil, err
 	}
 
-	// collect the notes into a slice
-	for _, note_filename := range notes {
-		note_path := filepath.Join(notedir, note_filename)
-		matter, err := ReadMatter(note_path)
-		if err != nil {
-			return nil, err
-		}
+	// We're gonna read the notes in parallel, so create channels to communicate
+	num_notes := len(notes)
+	jobs := make(chan string, num_notes)
+	results := make(chan ReadNoteResult, num_notes)
 
-		// Skip this iteration if we don't have the required tags
-		if !tags_match(required_tags, matter.Tags) {
-			continue
-		}
-
-		found_notes = append(found_notes, Note{Filename: note_filename, Matter: matter})
+	// TODO: 4 is an arbitrary number of threads to create. idk man
+	for w := 0; w < 4; w++ {
+		go read_note_worker(notedir, jobs, results)
 	}
 
+	// Send in the needed filenames, letting the workers start
+	for _, filename := range notes {
+		jobs <- filename
+	}
+	close(jobs)
+
+	// Collect the results from each goroutine
+	found_notes := make([]Note, num_notes)
+	failed := false
+	for i := 0; i < num_notes; i++ {
+		res := <-results
+
+		// Print an error if the goroutine failed
+		if res.err != nil {
+			fmt.Fprintf(os.Stderr, "note not read: %v\n", err)
+			failed = true
+		}
+
+		// Store the note in found_notes if the tags match
+		if tags_match(required_tags, res.val.Matter.Tags) {
+			found_notes = append(found_notes, res.val)
+		}
+	}
+
+	// If any goroutines failed, return that as an error after collecting all results
+	if failed {
+		return nil, errors.New("not all notes could be read")
+	}
+
+	// Sort our list of found notes by filename, then return them
+	sort.Slice(found_notes, func(i, j int) bool {
+		return found_notes[i].Filename < found_notes[j].Filename
+	})
 	return found_notes, nil
-}
-
-func ReadMatter(path string) (Frontmatter, error) {
-	var matter Frontmatter
-
-	// Attempt to read the file contents
-	// TODO: Can I avoid reading the entire file? I need at most 5 lines of it,
-	// or it would be even better if I could read until the end of the frontmatter
-	dat, err := os.ReadFile(path)
-	if err != nil {
-		return matter, err
-	}
-
-	// Try to parse the frontmatter of the file
-	// TODO: I bet converting to string is expensive too, I don't like this because it gets called per-note per-command
-	contents := string(dat)
-	_, err = frontmatter.Parse(strings.NewReader(contents), &matter)
-	if err != nil {
-		error_str := fmt.Sprintf("reading frontmatter of %s: %s", path, err.Error())
-		return matter, errors.New(error_str)
-	}
-
-	return matter, nil
 }
