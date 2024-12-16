@@ -1,5 +1,6 @@
-Simple note tagging and searching tool, rewritten in Go for the practice and
-to implement some different features than before.
+Simple note tagging and searching tool.
+
+Stores tags as in-file YAML frontmatter, so it's all human-readable and easily editable. Probably won't work well for large collections of notes, since storing notes per-file means a lot of reading for search-based operations.
 
 # Install
 
