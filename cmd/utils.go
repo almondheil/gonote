@@ -9,14 +9,12 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"os/user"
 	"path/filepath"
 	"slices"
 	"sort"
 	"syscall"
 
 	"github.com/adrg/frontmatter"
-	"gopkg.in/yaml.v3"
 )
 
 type Frontmatter struct {
@@ -134,8 +132,8 @@ func FindNotesFiltered(notedir string, required_tags []string) ([]Note, error) {
 	jobs := make(chan string, num_notes)
 	results := make(chan ReadNoteResult, num_notes)
 
-	// TODO: 4 is an arbitrary number of threads to create. idk man
-	for w := 0; w < 4; w++ {
+	// Start up a configured number of goroutines
+	for w := 0; w < user_cfg.ListThreads; w++ {
 		go read_note_worker(notedir, jobs, results)
 	}
 
