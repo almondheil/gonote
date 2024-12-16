@@ -2,17 +2,20 @@
 Copyright © 2024 almond Heil <contact@almendra.dev>
 */
 
-package common
+package cmd
 
 import (
+	"errors"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"slices"
 	"strings"
 	"syscall"
 
 	"github.com/adrg/frontmatter"
+	"gopkg.in/yaml.v3"
 )
 
 type note_frontmatter struct {
@@ -56,18 +59,80 @@ func tags_match(required []string, check []string) bool {
 	return true
 }
 
+func find_user_config() error {
+	// Get our user home directory
+	usr, err := user.Current()
+	if err != nil {
+		return err
+	}
+
+	// Valid places to store config
+	search_locations := []string{
+		".config/gonote/config.yaml",
+		".config/gonote/config.yml",
+		".gonote.yaml",
+		".gonote.yml",
+	}
+
+	// Check in each location
+	for _, loc := range search_locations {
+		conf_path := filepath.Join(usr.HomeDir, loc)
+		if Exists(conf_path) {
+			// Read the first config we come across, then be done
+			err := read_user_config(conf_path)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+	}
+
+	// if no files exist, raise that as an error
+	return os.ErrNotExist
+}
+
+// Read user config into the config struct, returning an error if anything goes wrong.
+func read_user_config(path string) error {
+	dat, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	// Read yaml into our global struct
+	err = yaml.Unmarshal(dat, &user_cfg)
+	if err != nil {
+		return err
+	}
+
+	// Make sure config's notes dir isn't undefined
+	if user_cfg.Notedir == "" {
+		return errors.New("config: note_dir is not defined")
+	} else {
+		// interpret any env vars in notedir (such as $HOME, importantly)
+		user_cfg.Notedir = os.ExpandEnv(user_cfg.Notedir)
+	}
+
+	// If other config options are undefined, set defaults
+	if user_cfg.Extension == "" {
+		user_cfg.Extension = ".md"
+	}
+	if user_cfg.Editor == "" {
+		user_cfg.Editor = "vim"
+	}
+	return nil
+}
+
 func EditNotes(notedir string, note_titles []string) error {
 	// Locate editor binary
-	// TODO: open the note with the configured editor (FOR NOW, JUST VIM)
 	// TODO: what if the editor is more than one word? then it's more than one arg and hoooo boy
-	binary, err := exec.LookPath("vim")
+	binary, err := exec.LookPath(user_cfg.Editor)
 	if err != nil {
 		return err
 	}
 
 	// Create the args needed to run vim
 	passed_args := make([]string, 1+len(note_titles))
-	passed_args[0] = "vim"
+	passed_args[0] = user_cfg.Editor
 	for i, name := range note_titles {
 		passed_args[i+1] = filepath.Join(notedir, name)
 	}
@@ -76,6 +141,11 @@ func EditNotes(notedir string, note_titles []string) error {
 	env := os.Environ()
 	err = syscall.Exec(binary, passed_args, env)
 	return err // if we hit this, exec failed anyway
+}
+
+func Exists(path string) bool {
+	_, err := os.Stat(path)
+	return !errors.Is(err, os.ErrNotExist)
 }
 
 func FindNotesFiltered(notedir string, required_tags []string) ([]Note, error) {
