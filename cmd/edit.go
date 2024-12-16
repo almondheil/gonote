@@ -14,7 +14,7 @@ var edit_tags []string
 
 // editCmd represents the edit command
 var editCmd = &cobra.Command{
-	Use:                   "edit [-t tag [-t tag ...]]",
+	Use:                   "edit [-t tags [-t tags ...]]",
 	Short:                 "Search for and open a note.",
 	Aliases:               []string{"e"},
 	DisableFlagsInUseLine: true,
@@ -76,5 +76,5 @@ func fzf_choose_notes(notes []Note) ([]string, error) {
 func init() {
 	rootCmd.AddCommand(editCmd)
 
-	editCmd.Flags().StringArrayVarP(&edit_tags, "tags", "t", make([]string, 0), "Only show notes with tag(s)")
+	editCmd.Flags().StringSliceVarP(&edit_tags, "tags", "t", make([]string, 0), "Only show notes with tag(s)")
 }

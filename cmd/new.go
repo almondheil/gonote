@@ -19,7 +19,7 @@ var new_noprompt bool
 
 // newCmd represents the new command
 var newCmd = &cobra.Command{
-	Use:                   "new [-l] [-t tag [-t tag ...]] title",
+	Use:                   "new [-l] [-t tags [-t tags ...]] title",
 	Aliases:               []string{"n"},
 	Short:                 "Create a new note.",
 	DisableFlagsInUseLine: true,
@@ -114,6 +114,6 @@ func confirm_create(title string) (bool, error) {
 func init() {
 	rootCmd.AddCommand(newCmd)
 
-	newCmd.Flags().StringArrayVarP(&new_tags, "tags", "t", make([]string, 0), "Create note with tag(s)")
+	newCmd.Flags().StringSliceVarP(&new_tags, "tags", "t", make([]string, 0), "Create note with tag(s)")
 	newCmd.Flags().BoolVarP(&new_noprompt, "yes", "y", false, "Create note without prompting")
 }

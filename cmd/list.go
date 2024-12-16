@@ -14,7 +14,7 @@ var list_long bool
 
 // listCmd represents the list command
 var listCmd = &cobra.Command{
-	Use:                   "list [-l] [-t tag [-t tag ...]]",
+	Use:                   "list [-l] [-t tags [-t tags ...]]",
 	Short:                 "List notes and filter by tags.",
 	Aliases:               []string{"ls", "l"},
 	DisableFlagsInUseLine: true,
@@ -56,6 +56,6 @@ func print_note_info(note Note, long bool) {
 func init() {
 	rootCmd.AddCommand(listCmd)
 
-	listCmd.Flags().StringArrayVarP(&list_tags, "tag", "t", make([]string, 0), "Only show notes with tag(s)")
+	listCmd.Flags().StringSliceVarP(&list_tags, "tags", "t", make([]string, 0), "Only show notes with tag(s)")
 	listCmd.Flags().BoolVarP(&list_long, "long", "l", false, "Long note listings")
 }
