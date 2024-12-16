@@ -19,11 +19,9 @@ var user_cfg Config
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "gonote",
-	Short: "Simple note tagging and searching tool.",
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+	Use:          "gonote",
+	Short:        "Simple note tagging and searching tool.",
+	SilenceUsage: true,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
