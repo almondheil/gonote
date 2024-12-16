@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 var new_tags []string
@@ -69,9 +70,18 @@ func create_templated_note(notedir string, title string) error {
 	}
 	defer f.Close()
 
-	format := "---\ntitle: %s\ndate: %s\ntags: %v\n---\n"
-	matter := fmt.Sprintf(format, title, date_long, new_tags)
-	_, err = f.WriteString(matter)
+	// Create a frontmatter struct so we can marshal it into the file
+	var new_matter Frontmatter
+	new_matter.Title = title
+	new_matter.Date = date_long
+	new_matter.Tags = new_tags
+	matter, err := yaml.Marshal(new_matter)
+	if err != nil {
+		return err
+	}
+
+	// Write that as a string to the file
+	_, err = f.WriteString("---\n" + string(matter) + "---\n")
 	if err != nil {
 		return err
 	}

@@ -19,15 +19,15 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type note_frontmatter struct {
+type Frontmatter struct {
 	Title string   `yaml:"title"`
 	Date  string   `yaml:"date"`
-	Tags  []string `yaml:"tags"`
+	Tags  []string `yaml:"tags,flow"`
 }
 
 type Note struct {
 	Filename string
-	Matter   note_frontmatter
+	Matter   Frontmatter
 }
 
 func list_notes(path string) ([]string, error) {
@@ -176,8 +176,8 @@ func FindNotesFiltered(notedir string, required_tags []string) ([]Note, error) {
 	return found_notes, nil
 }
 
-func ReadMatter(path string) (note_frontmatter, error) {
-	var matter note_frontmatter
+func ReadMatter(path string) (Frontmatter, error) {
+	var matter Frontmatter
 
 	// Attempt to read the file contents
 	// TODO: Can I avoid reading the entire file? I need at most 5 lines of it,
