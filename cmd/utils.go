@@ -167,9 +167,9 @@ func FindNotesFiltered(notedir string, required_tags []string) ([]Note, error) {
 		return nil, errors.New("not all notes could be read")
 	}
 
-	// Sort our list of found notes by filename, then return them
+	// Sort our list of found notes by filename descending (puts newer dates on top)
 	sort.Slice(found_notes, func(i, j int) bool {
-		return found_notes[i].Filename < found_notes[j].Filename
+		return found_notes[i].Filename > found_notes[j].Filename
 	})
 	return found_notes, nil
 }
