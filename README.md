@@ -8,4 +8,4 @@ Stores tags as in-file YAML frontmatter, so it's all human-readable and easily e
 go install github.com/almondheil/gonote@latest
 ```
 
-omg so simple! wow!
+I am happy because this is **so much** easier than installing py-note on a fresh machine
