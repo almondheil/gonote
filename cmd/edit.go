@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/koki-develop/go-fzf"
 	"github.com/spf13/cobra"
@@ -28,6 +29,19 @@ var editCmd = &cobra.Command{
 		notes, err := FindNotesFiltered(notedir, edit_tags)
 		if err != nil {
 			return err
+		}
+
+		// if 0 or 1 notes are found, special behavior happens.
+		// - 0 notes is a exit and note to the user
+		// - 1 note means we just open it right away
+		if len(notes) == 0 {
+			fmt.Fprintln(os.Stderr, "No notes to edit")
+			return nil
+		} else if len(notes) == 1 {
+			choices := make([]string, 1)
+			choices[0] = notes[0].Filename
+			EditNotes(notedir, choices)
+			return nil
 		}
 
 		choice_filenames, err := fzf_choose_notes(notes)
