@@ -5,8 +5,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"slices"
 	"strings"
 
@@ -26,9 +24,7 @@ var tagsCmd = &cobra.Command{
 			return err
 		}
 
-		// Get all notes in that directory (regardless of tag)
-		homedir := os.Getenv("HOME")
-		notedir := filepath.Join(homedir, "Notes")
+		notedir := user_cfg.Notedir
 		notes, err := FindNotesFiltered(notedir, []string{})
 		if err != nil {
 			return err
